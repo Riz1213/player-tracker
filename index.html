@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Player Performance Tracker</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --success: #4cc9f0;
+      --error: #f72585;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .form-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    .form-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: var(--primary);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 25px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: border 0.3s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    button:hover {
+      background: #3a56d4;
+    }
+    button.loading {
+      background: #a7b4f0;
+      pointer-events: none;
+    }
+    button.loading::after {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-left: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .alert {
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+      display: none;
+      animation: fadeIn 0.5s;
+    }
+    .alert.success {
+      background: rgba(76, 201, 240, 0.2);
+      color: #0a9396;
+      border: 1px solid var(--success);
+    }
+    .alert.error {
+      background: rgba(247, 37, 133, 0.2);
+      color: #ae2012;
+      border: 1px solid var(--error);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>Player Performance Tracker</h1>
+    <form id="playerForm">
+      <div class="form-group">
+        <label for="playerName">Player Name</label>
+        <input type="text" id="playerName" name="playerName" required />
+      </div>
+
+      <div class="form-group">
+        <label for="matchesPlayed">Matches Played (e.g. 2)</label>
+        <input type="number" min="0" id="matchesPlayed" name="matchesPlayed" required />
+      </div>
+
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" required />
+      </div>
+
+      <div class="form-group">
+        <label for="playerActivity">Player Activity</label>
+        <select id="playerActivity" name="playerActivity" required>
+          <option value="">-- Select Activity Level --</option>
+          <option value="Excellent">Excellent</option>
+          <option value="Good">Good</option>
+          <option value="Average">Average</option>
+          <option value="Poor">Poor</option>
+        </select>
+      </div>
+
+      <button type="submit" id="submitBtn">Submit Performance Data</button>
+
+      <div class="alert success" id="successAlert">Data submitted successfully! ✔</div>
+      <div class="alert error" id="errorAlert">Error submitting data. Please try again. ❌</div>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('playerForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const successAlert = document.getElementById('successAlert');
+      const errorAlert = document.getElementById('errorAlert');
+
+      // Your Google Apps Script Web App URL here:
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbzP7NVBUOxWjHmhrvPVBULVYmEZ-5cCtkrEh278trmm5BOuKDA8ws1ibdDS-szImmxx/exec';
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Reset alerts
+        successAlert.style.display = 'none';
+        errorAlert.style.display = 'none';
+
+        // Show loading state
+        submitBtn.classList.add('loading');
+        submitBtn.textContent = 'Submitting...';
+
+        try {
+          const formData = new FormData(form);
+          const data = {
+            playerName: formData.get('playerName'),
+            matchesPlayed: formData.get('matchesPlayed'),
+            date: formData.get('date'),
+            playerActivity: formData.get('playerActivity')
+          };
+
+          const response = await fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (!response.ok) throw new Error('Network response was not ok');
+
+          // Show success message and reset form
+          successAlert.style.display = 'block';
+          form.reset();
+
+          // Hide success message after 4 seconds
+          setTimeout(() => {
+            successAlert.style.display = 'none';
+          }, 4000);
+
+        } catch (error) {
+          errorAlert.style.display = 'block';
+
+          // Hide error message after 4 seconds
+          setTimeout(() => {
+            errorAlert.style.display = 'none';
+          }, 4000);
+        } finally {
+          // Reset button
+          submitBtn.classList.remove('loading');
+          submitBtn.textContent = 'Submit Performance Data';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
