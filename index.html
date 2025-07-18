@@ -27,12 +27,11 @@
     .form-container {
       background: white;
       border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 500px;
       padding: 30px;
       position: relative;
-      overflow: hidden;
     }
     .form-container::before {
       content: '';
@@ -49,9 +48,6 @@
       text-align: center;
       font-weight: 600;
     }
-    .form-group {
-      margin-bottom: 20px;
-    }
     label {
       display: block;
       margin-bottom: 8px;
@@ -65,6 +61,7 @@
       border-radius: 5px;
       font-size: 16px;
       transition: border 0.3s;
+      margin-bottom: 20px;
     }
     input:focus, select:focus {
       outline: none;
@@ -81,10 +78,6 @@
       border-radius: 5px;
       cursor: pointer;
       transition: background 0.3s;
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     button:hover {
       background: #3a56d4;
@@ -134,31 +127,23 @@
   <div class="form-container">
     <h1>Player Performance Tracker</h1>
     <form id="playerForm">
-      <div class="form-group">
-        <label for="playerName">Player Name</label>
-        <input type="text" id="playerName" name="playerName" required />
-      </div>
+      <label for="playerName">Player Name</label>
+      <input type="text" id="playerName" name="playerName" required />
 
-      <div class="form-group">
-        <label for="matchesPlayed">Matches Played (e.g. 2)</label>
-        <input type="number" min="0" id="matchesPlayed" name="matchesPlayed" required />
-      </div>
+      <label for="matchesPlayed">Matches Played</label>
+      <input type="number" min="0" id="matchesPlayed" name="matchesPlayed" required />
 
-      <div class="form-group">
-        <label for="date">Date</label>
-        <input type="date" id="date" name="date" required />
-      </div>
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" required />
 
-      <div class="form-group">
-        <label for="playerActivity">Player Activity</label>
-        <select id="playerActivity" name="playerActivity" required>
-          <option value="">-- Select Activity Level --</option>
-          <option value="Excellent">Excellent</option>
-          <option value="Good">Good</option>
-          <option value="Average">Average</option>
-          <option value="Poor">Poor</option>
-        </select>
-      </div>
+      <label for="playerActivity">Player Activity</label>
+      <select id="playerActivity" name="playerActivity" required>
+        <option value="">-- Select Activity Level --</option>
+        <option value="Excellent">Excellent</option>
+        <option value="Good">Good</option>
+        <option value="Average">Average</option>
+        <option value="Poor">Poor</option>
+      </select>
 
       <button type="submit" id="submitBtn">Submit Performance Data</button>
 
@@ -168,62 +153,55 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('playerForm');
       const submitBtn = document.getElementById('submitBtn');
       const successAlert = document.getElementById('successAlert');
       const errorAlert = document.getElementById('errorAlert');
 
-      // Your Google Apps Script Web App URL here:
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbzP7NVBUOxWjHmhrvPVBULVYmEZ-5cCtkrEh278trmm5BOuKDA8ws1ibdDS-szImmxx/exec';
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbzBGW39-uGNE-XsTzxlVVNS6mUAukchskTsM3HNARFuv8a9oyN2j0nRY4yKtGOh9qQu/exec';
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Reset alerts
         successAlert.style.display = 'none';
         errorAlert.style.display = 'none';
 
-        // Show loading state
-        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting...';
 
-        try {
-          const formData = new FormData(form);
-          const data = {
-            playerName: formData.get('playerName'),
-            matchesPlayed: formData.get('matchesPlayed'),
-            date: formData.get('date'),
-            playerActivity: formData.get('playerActivity')
-          };
+        const formData = new FormData(form);
+        const data = {
+          playerName: formData.get('playerName'),
+          matchesPlayed: formData.get('matchesPlayed'),
+          date: formData.get('date'),
+          playerActivity: formData.get('playerActivity')
+        };
 
-          const response = await fetch(scriptURL, {
+        try {
+          const res = await fetch(scriptURL, {
             method: 'POST',
-            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' }
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
           });
 
-          if (!response.ok) throw new Error('Network response was not ok');
+          if (!res.ok) throw new Error('Network response was not ok');
 
-          // Show success message and reset form
           successAlert.style.display = 'block';
           form.reset();
 
-          // Hide success message after 4 seconds
           setTimeout(() => {
             successAlert.style.display = 'none';
           }, 4000);
 
-        } catch (error) {
+        } catch (err) {
           errorAlert.style.display = 'block';
-
-          // Hide error message after 4 seconds
           setTimeout(() => {
             errorAlert.style.display = 'none';
           }, 4000);
+
         } finally {
-          // Reset button
-          submitBtn.classList.remove('loading');
+          submitBtn.disabled = false;
           submitBtn.textContent = 'Submit Performance Data';
         }
       });
